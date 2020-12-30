@@ -1,0 +1,17 @@
+{
+  "kind": "collectionType",
+  "collectionName": "example_collections",
+  "info": {
+    "name": "ExampleCollection"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    }
+  }
+}

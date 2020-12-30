@@ -1,0 +1,52 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/example-collections",
+      "handler": "example-collection.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/example-collections/count",
+      "handler": "example-collection.count",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/example-collections/:id",
+      "handler": "example-collection.findOne",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/example-collections",
+      "handler": "example-collection.create",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/example-collections/:id",
+      "handler": "example-collection.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/example-collections/:id",
+      "handler": "example-collection.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}
