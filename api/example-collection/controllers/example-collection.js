@@ -1,9 +1,5 @@
-'use strict';
+const { sanitizeEntity } = require('strapi-utils');
 
-/**
- * Read the documentation (https://strapi.io/documentation/developer-docs/latest/concepts/controllers.html#core-controllers)
- * to customize this controller
- */
 
 module.exports = {
     async create(ctx) {
@@ -15,7 +11,7 @@ module.exports = {
           entity = await strapi.services['example-collection'].create(ctx.request.body);
         }
     
-        strapi.StrapIO.emit(this, ctx,'create', entity, 'example-collection');
+        strapi.StrapIO.emit(this,'create', entity);
     
         return sanitizeEntity(entity, { model: strapi.models['example-collection'] });
       },

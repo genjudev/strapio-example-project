@@ -1,3 +1,12 @@
+<h1>StrapIO Example code</h1>
+<p>This example code will send events when create an exampe-collection item</p>
+<p>You can edit the controller at api/example-collection/controllers/example-collection.js</p>
+<h4>Debugging</h4>
+<p>You want deep debugging? Run the Server with: DEBUG=* npm run develop </p>
+<p>Just in case you want only debug strapio, DEBUG=strapio npm run develop</p>
+<p>You want deep client debugging? uncomment // localStorage.debug="*" in the index.html file.</p>
+
+
 <h2>Login:</h2>
 <form>
     <input id="username" type="text" value="" placeholder="Username" /><br /><br />
@@ -5,22 +14,38 @@
     <input type="button" onclick="login()" value="Login" />
 </form>
 <div id="error" style="color: red"></div>
+<sup><a href="http://localhost:1337/admin/settings/users-permissions/roles">CHECK USER-PERMISSIONS (need to be logged in admin ui)</a></sup><br />
 Username: <span id="usernameLabel"></span><br />
-Role: <span id="role"></span><br />
+Role: <span id="role"></span><br /> 
 Token ***: <span id="token"></span><br />
 
-<h2>Events:</h2>
+
+<h2>Create random entity (first login)</h2>
+<input type="button" onclick="createRandomEntity()" value="Create" />
+
+<h2>Events (time, event, data):</h2>
 
 <div readonly id="textarea" style="min-width: 80%; height: 80%;"></div>
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
 <script>
+    //localStorage.debug="*"
 
     function writeEvent(event, data) {
-        console.log(event, data);
-        document.getElementById('textarea').innerHTML += "<span style='color: darkred'>" + (new Date()).toISOString() + "</span><span style='color: darkblue'>" + " [" + event + "]</span> " + data + "\n";
+        document.getElementById('textarea').innerHTML += "<span style='color: darkred'>" + (new Date()).toISOString() + "</span><span style='color: darkblue'>" + " [" + event + "]</span> " + data + "<br />";
     }
 
+    function createRandomEntity() {
+        fetch('/example-collections', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.jwt
+            },
+            body: JSON.stringify({ name: Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5)})
+        });
+    }
     async function login() {
         const result = await fetch('/auth/local', {
             method: 'POST',
@@ -36,6 +61,7 @@ Token ***: <span id="token"></span><br />
 
         if (result.ok) {
             const userData = await result.json();
+            localStorage.jwt = userData.jwt;
             document.getElementById('usernameLabel').innerHTML = userData.user.username;
             document.getElementById('role').innerHTML = userData.user.role.name;
             document.getElementById('token').innerHTML = userData.jwt.substring(0, 12) + "****************************";
@@ -55,29 +81,25 @@ Token ***: <span id="token"></span><br />
 
         const server = location.origin;
         const socket = io(server, {
-            path: "/",
             query: {
                 token,
             },
         });
         writeEvent("Start", "trying connecting to server: " + server + " connection: " + socket.connected);
         socket.on("connect", () => {
-            console.log("asd")
             writeEvent("connect", socket.id);
         })
 
         socket.on("message", data => writeEvent("Message", data));
 
-        socket.emit("subscribe", "example-collections"); // article is the room which the client joins
-        socket.emit("subscribe", "myroom"); // custom room
+        socket.emit("subscribe", "example-collection");
 
         socket.on("find", data => writeEvent("find", data));
-        socket.on("update", (data) => {
-            // do something
-        });
-
+        socket.on("update", data => writeEvent("update", data));
         socket.on("create", data => writeEvent("create", data));
 
-        socket.on("myevent", (data) => { });
+        // Here you can implement custom events
+        // socket.emit("subscribe", "myroom"); // custom room
+        // socket.on("myevent", (data) => { });
     };
 </script>
