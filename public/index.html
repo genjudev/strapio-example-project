@@ -1,0 +1,83 @@
+<h2>Login:</h2>
+<form>
+    <input id="username" type="text" value="" placeholder="Username" /><br /><br />
+    <input id="password" type="password" value="" placeholder="Password" /><br /> <br />
+    <input type="button" onclick="login()" value="Login" />
+</form>
+<div id="error" style="color: red"></div>
+Username: <span id="usernameLabel"></span><br />
+Role: <span id="role"></span><br />
+Token ***: <span id="token"></span><br />
+
+<h2>Events:</h2>
+
+<div readonly id="textarea" style="min-width: 80%; height: 80%;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+<script>
+
+    function writeEvent(event, data) {
+        console.log(event, data);
+        document.getElementById('textarea').innerHTML += "<span style='color: darkred'>" + (new Date()).toISOString() + "</span><span style='color: darkblue'>" + " [" + event + "]</span> " + data + "\n";
+    }
+
+    async function login() {
+        const result = await fetch('/auth/local', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(
+                {
+                    identifier: document.getElementById('username').value,
+                    password: document.getElementById('password').value
+                })
+        });
+
+        if (result.ok) {
+            const userData = await result.json();
+            document.getElementById('usernameLabel').innerHTML = userData.user.username;
+            document.getElementById('role').innerHTML = userData.user.role.name;
+            document.getElementById('token').innerHTML = userData.jwt.substring(0, 12) + "****************************";
+
+            document.getElementById('error').innerHTML = '';
+
+            connectSocket(userData.jwt);
+
+        } else {
+            document.getElementById('error').innerHTML = await result.text();
+        }
+    }
+
+
+    // Handshake required, token will be verified against strapi
+    function connectSocket(token) {
+
+        const server = location.origin;
+        const socket = io(server, {
+            path: "/",
+            query: {
+                token,
+            },
+        });
+        writeEvent("Start", "trying connecting to server: " + server + " connection: " + socket.connected);
+        socket.on("connect", () => {
+            console.log("asd")
+            writeEvent("connect", socket.id);
+        })
+
+        socket.on("message", data => writeEvent("Message", data));
+
+        socket.emit("subscribe", "example-collections"); // article is the room which the client joins
+        socket.emit("subscribe", "myroom"); // custom room
+
+        socket.on("find", data => writeEvent("find", data));
+        socket.on("update", (data) => {
+            // do something
+        });
+
+        socket.on("create", data => writeEvent("create", data));
+
+        socket.on("myevent", (data) => { });
+    };
+</script>
